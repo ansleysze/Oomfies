@@ -119,16 +119,18 @@ async function editUser(id, currentName, currentCount) {
     const newCount = prompt('Fan Count:', currentCount);
     if (newCount === null) return;
 
-    const { error } = await supabaseClient
+    const { data, error } = await supabaseClient
         .from('users')
-        .update({ username: newName.trim(), fan_count: parseInt(newCount) })
+        .update({
+            username: newName.trim(),
+            fan_count: parseInt(newCount)
+        })
         .eq('id', id);
 
-    if (error) alert(error.message);
-    else loadUsers();
+    if (error) {
+        console.log(error);
+        alert(error.message);
+    } else {
+        loadUsers();
+    }
 }
-
-// Auto-login if session exists
-supabaseClient.auth.getSession().then(({ data: { session } }) => {
-    if (session) showPanel();
-});
