@@ -11,9 +11,21 @@
 <body>
 
 <div class="container">
-    <h1>Fan Leaderboard</h1>
-    <div class="card">
-        <canvas id="chart"></canvas>
+    <h1>🏆 Fan Leaderboard</h1>
+
+    <div class="card chart-card">
+        <div class="loading" id="chart-loading">
+            <div class="spinner"></div>
+            <p>Loading chart...</p>
+        </div>
+        <canvas id="chart" style="display:none;"></canvas>
+    </div>
+
+    <div id="leaderboard"></div>
+
+    <div class="empty" id="empty-state" style="display:none;">
+        <p>No fans tracked yet</p>
+        <span>Check back soon!</span>
     </div>
 </div>
 

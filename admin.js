@@ -1,81 +1,65 @@
 const supabaseUrl = 'https://xvwafkmjztchhroqwsjn.supabase.co';
 const supabaseKey = 'sb_publishable_R9Nc-IE0BNsEDliq3MBM1w_wdlmH5hA';
-
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    if (btnId === 'login-btn') btn.textContent = loading ? 'Signing in...' : 'Sign In';
+    if (btnId === 'add-btn') btn.textContent = loading ? 'Adding...' : '+ Add';
+}
 
-/* =========================
-   LOGIN
-========================= */
 async function login() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
+    setLoading('login-btn', true);
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    setLoading('login-btn', false);
 
     if (error) {
         alert(error.message);
         return;
     }
 
-    console.log("Logged in user:", data.user);
-
     await showPanel();
 }
 
-
-/* =========================
-   LOGOUT
-========================= */
 async function logout() {
     await supabaseClient.auth.signOut();
-
     document.getElementById('admin-panel').style.display = 'none';
     document.getElementById('login-section').style.display = 'block';
 }
 
-
-/* =========================
-   SHOW ADMIN PANEL
-========================= */
 async function showPanel() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
 
-    const { data: { user }, error } = await supabaseClient.auth.getUser();
-
-    if (error || !user) {
-        alert("Not authenticated");
-        return;
-    }
-
+    const { data: { user } } = await supabaseClient.auth.getUser();
     document.getElementById('user-email').textContent = user.email;
 
     loadUsers();
 }
 
-
-/* =========================
-   LOAD USERS
-========================= */
 async function loadUsers() {
+    const container = document.getElementById('user-list');
+    container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading users...</p></div>`;
+
     const { data, error } = await supabaseClient
         .from('users')
         .select('*')
         .order('fan_count', { ascending: false });
 
-    const container = document.getElementById('user-list');
-
     if (error) {
-        container.innerHTML = `<div class="empty">${error.message}</div>`;
+        container.innerHTML = `<div class="empty"><p>Error</p><span>${error.message}</span></div>`;
         return;
     }
 
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div class="empty">No users yet</div>`;
+    if (!data.length) {
+        container.innerHTML = `<div class="empty"><p>No users yet</p><span>Add someone above to get started</span></div>`;
         return;
     }
 
@@ -93,10 +77,6 @@ async function loadUsers() {
     `).join('');
 }
 
-
-/* =========================
-   ADD USER (CREATE)
-========================= */
 async function addUser() {
     const username = document.getElementById('username').value.trim();
     const fanCount = parseInt(document.getElementById('count').value);
@@ -106,11 +86,13 @@ async function addUser() {
         return;
     }
 
+    setLoading('add-btn', true);
+
     const { error } = await supabaseClient
         .from('users')
-        .insert([
-            { username, fan_count: fanCount }
-        ]);
+        .insert([{ username, fan_count: fanCount }]);
+
+    setLoading('add-btn', false);
 
     if (error) {
         alert(error.message);
@@ -119,33 +101,17 @@ async function addUser() {
 
     document.getElementById('username').value = '';
     document.getElementById('count').value = '';
-
     loadUsers();
 }
 
-
-/* =========================
-   DELETE USER
-========================= */
 async function deleteUser(id) {
     if (!confirm('Delete this user?')) return;
 
-    const { error } = await supabaseClient
-        .from('users')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        alert(error.message);
-    } else {
-        loadUsers();
-    }
+    const { error } = await supabaseClient.from('users').delete().eq('id', id);
+    if (error) alert(error.message);
+    else loadUsers();
 }
 
-
-/* =========================
-   EDIT USER
-========================= */
 async function editUser(id, currentName, currentCount) {
     const newName = prompt('Username:', currentName);
     if (newName === null) return;
@@ -155,29 +121,14 @@ async function editUser(id, currentName, currentCount) {
 
     const { error } = await supabaseClient
         .from('users')
-        .update({
-            username: newName.trim(),
-            fan_count: parseInt(newCount)
-        })
+        .update({ username: newName.trim(), fan_count: parseInt(newCount) })
         .eq('id', id);
 
-    if (error) {
-        alert(error.message);
-    } else {
-        loadUsers();
-    }
+    if (error) alert(error.message);
+    else loadUsers();
 }
 
-
-/* =========================
-   AUTO SESSION CHECK
-========================= */
-(async () => {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-    console.log("Session:", session);
-
-    if (session) {
-        showPanel();
-    }
-})();
+// Auto-login if session exists
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) showPanel();
+});

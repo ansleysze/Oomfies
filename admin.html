@@ -13,11 +13,11 @@
 
     <!-- Login -->
     <div id="login-section">
-        <h1>Login</h1>
+        <h1>Admin Login</h1>
         <div class="login-form">
             <input id="email" type="email" placeholder="Email">
             <input id="password" type="password" placeholder="Password">
-            <button onclick="login()">Sign In</button>
+            <button id="login-btn" onclick="login()">Sign In</button>
         </div>
     </div>
 
@@ -34,10 +34,15 @@
         <div class="add-form">
             <input id="username" placeholder="Username">
             <input id="count" type="number" placeholder="Fan count">
-            <button onclick="addUser()">+ Add</button>
+            <button id="add-btn" onclick="addUser()">+ Add</button>
         </div>
 
-        <div id="user-list"></div>
+        <div id="user-list">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading users...</p>
+            </div>
+        </div>
     </div>
 
 </div>
