@@ -3,36 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Fan Counter</title>
-<link rel="stylesheet" href="style.css">
+<title>Admin</title>
+<link rel="stylesheet" href="admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="container">
-    <h1>Admin</h1>
 
     <!-- Login -->
-    <div id="login-section" class="card">
-        <div class="row">
+    <div id="login-section">
+        <h1>Login</h1>
+        <div class="login-form">
             <input id="email" type="email" placeholder="Email">
             <input id="password" type="password" placeholder="Password">
-            <button onclick="login()">Login</button>
+            <button onclick="login()">Sign In</button>
         </div>
     </div>
 
-    <!-- Admin Panel (hidden until login) -->
+    <!-- Admin Panel -->
     <div id="admin-panel" style="display:none;">
-        <div class="card" id="leaderboard">
-            <div class="loading">Loading...</div>
+        <div class="header">
+            <div>
+                <h1>Dashboard</h1>
+                <span class="logged-in" id="user-email"></span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
-        <div class="admin">
+        <div class="add-form">
             <input id="username" placeholder="Username">
-            <input id="count" type="number" placeholder="Fan Count">
-            <button onclick="addUser()">Add</button>
+            <input id="count" type="number" placeholder="Fan count">
+            <button onclick="addUser()">+ Add</button>
         </div>
+
+        <div id="user-list"></div>
     </div>
+
 </div>
 
 <script src="admin.js"></script>
