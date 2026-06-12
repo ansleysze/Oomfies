@@ -188,7 +188,17 @@ h1 {
 
 .user-actions {
     display: flex;
+    align-items: center;
     gap: 6px;
+}
+
+.fan-input {
+    width: 70px;
+    flex: none;
+    padding: 6px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 12px;
 }
 
 .user-actions button {

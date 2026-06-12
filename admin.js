@@ -70,6 +70,8 @@ async function loadUsers() {
                 <span class="fans">${user.fan_count.toLocaleString()} fans</span>
             </div>
             <div class="user-actions">
+                <input type="number" class="fan-input" id="fans-${user.uuid_id}" placeholder="+fans">
+                <button onclick="addFans('${user.uuid_id}')">+ Fans</button>
                 <button onclick="editUser('${user.uuid_id}', '${user.username}', ${user.fan_count})">Edit</button>
                 <button class="delete-btn" onclick="deleteUser('${user.uuid_id}')">Delete</button>
             </div>
@@ -102,6 +104,28 @@ async function addUser() {
     document.getElementById('username').value = '';
     document.getElementById('count').value = '';
     loadUsers();
+}
+
+async function addFans(userId) {
+    const input = document.getElementById(`fans-${userId}`);
+    const amount = parseInt(input.value);
+
+    if (!amount || isNaN(amount)) {
+        alert('Enter a fan amount');
+        return;
+    }
+
+    const { error } = await supabaseClient.rpc('add_fans', {
+        user_id: userId,
+        amount: amount
+    });
+
+    if (error) {
+        alert(error.message);
+    } else {
+        input.value = '';
+        loadUsers();
+    }
 }
 
 async function deleteUser(id) {
