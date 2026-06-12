@@ -13,12 +13,24 @@
 <div class="container">
     <h1>🏆 Fan Leaderboard</h1>
 
+    <!-- Weekly Growth Line Chart -->
     <div class="card chart-card">
-        <div class="loading" id="chart-loading">
+        <h2 class="chart-title">Weekly Fan Growth</h2>
+        <div class="loading" id="line-loading">
             <div class="spinner"></div>
             <p>Loading chart...</p>
         </div>
-        <canvas id="chart" style="display:none;"></canvas>
+        <canvas id="line-chart" style="display:none;"></canvas>
+    </div>
+
+    <!-- Total Fan Count Bar Chart -->
+    <div class="card chart-card">
+        <h2 class="chart-title">Total Fan Count</h2>
+        <div class="loading" id="bar-loading">
+            <div class="spinner"></div>
+            <p>Loading chart...</p>
+        </div>
+        <canvas id="bar-chart" style="display:none;"></canvas>
     </div>
 
     <div id="leaderboard"></div>

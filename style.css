@@ -34,6 +34,13 @@ h1 {
     margin-bottom: 24px;
 }
 
+.chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 16px;
+}
+
 .chart-card canvas {
     max-height: 280px;
 }
