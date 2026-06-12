@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Fan Counter</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Admin</h1>
+
+    <!-- Login -->
+    <div id="login-section" class="card">
+        <div class="row">
+            <input id="email" type="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel (hidden until login) -->
+    <div id="admin-panel" style="display:none;">
+        <div class="card" id="leaderboard">
+            <div class="loading">Loading...</div>
+        </div>
+
+        <div class="admin">
+            <input id="username" placeholder="Username">
+            <input id="count" type="number" placeholder="Fan Count">
+            <button onclick="addUser()">Add</button>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
