@@ -65,3 +65,10 @@ async function loadData() {
 }
 
 loadData();
+
+supabaseClient
+    .channel('users')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        loadData();
+    })
+    .subscribe();

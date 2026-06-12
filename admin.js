@@ -70,8 +70,8 @@ async function loadUsers() {
                 <span class="fans">${user.fan_count.toLocaleString()} fans</span>
             </div>
             <div class="user-actions">
-                <button onclick="editUser('${user.id}', '${user.username}', ${user.fan_count})">Edit</button>
-                <button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>
+                <button onclick="editUser('${user.uuid_id}', '${user.username}', ${user.fan_count})">Edit</button>
+                <button class="delete-btn" onclick="deleteUser('${user.uuid_id}')">Delete</button>
             </div>
         </div>
     `).join('');
@@ -107,7 +107,7 @@ async function addUser() {
 async function deleteUser(id) {
     if (!confirm('Delete this user?')) return;
 
-    const { error } = await supabaseClient.from('users').delete().eq('id', id);
+    const { error } = await supabaseClient.from('users').delete().eq('uuid_id', id);
     if (error) alert(error.message);
     else loadUsers();
 }
@@ -125,7 +125,7 @@ async function editUser(id, currentName, currentCount) {
             username: newName.trim(),
             fan_count: parseInt(newCount)
         })
-        .eq('id', id);
+        .eq('uuid_id', id);
 
     if (error) {
         console.log(error);
@@ -134,3 +134,16 @@ async function editUser(id, currentName, currentCount) {
         loadUsers();
     }
 }
+
+// Realtime: auto-refresh on any DB change
+supabaseClient
+    .channel('users')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        loadUsers();
+    })
+    .subscribe();
+
+// Auto-login if session exists
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) showPanel();
+});
