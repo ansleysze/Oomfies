@@ -7,11 +7,12 @@ const LINE_COLORS = ['#f5c518', '#6366f1', '#10b981', '#ef4444', '#f97316', '#8b
 let lineChartInstance = null;
 let barChartInstance = null;
 
-function getWeekLabel(dateStr) {
+function getWeekStart(dateStr) {
     const d = new Date(dateStr);
-    const start = new Date(d);
-    start.setDate(d.getDate() - d.getDay());
-    return start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const day = d.getDay();
+    const diff = d.getDate() - day;
+    const weekStart = new Date(d.setDate(diff));
+    return weekStart.toISOString().split('T')[0];
 }
 
 async function loadLineChart() {
@@ -20,49 +21,61 @@ async function loadLineChart() {
 
     const { data, error } = await supabaseClient
         .from('fan_history')
-        .select(`user_id, created_at, change_amount, users (username)`)
+        .select(`
+            user_id,
+            created_at,
+            new_count,
+            users(username)
+        `)
         .order('created_at', { ascending: true });
+
+    console.log(data, error);
 
     lineLoading.style.display = 'none';
 
-    if (error || !data || !data.length) return;
+    if (error || !data?.length) return;
 
-    // Group by user and week
-    const userWeeks = {};
-    const allWeeks = new Set();
+    const weekly = {};
+    const userNames = {};
 
-    data.forEach(entry => {
-        const username = entry.users?.username || entry.user_id;
-        const week = getWeekLabel(entry.created_at);
-        allWeeks.add(week);
+    data.forEach(row => {
+        const user = row.user_id;
+        const week = getWeekStart(row.created_at);
 
-        if (!userWeeks[username]) userWeeks[username] = {};
-        if (!userWeeks[username][week]) userWeeks[username][week] = 0;
-        userWeeks[username][week] += entry.change_amount;
+        if (!userNames[user]) userNames[user] = row.users?.username || user;
+
+        if (!weekly[user]) weekly[user] = {};
+        weekly[user][week] = row.new_count;
     });
 
-    const weeks = [...allWeeks];
-    const datasets = Object.keys(userWeeks).map((username, i) => ({
-        label: username,
-        data: weeks.map(w => userWeeks[username][w] || 0),
+    const allWeeks = new Set();
+    Object.values(weekly).forEach(userWeeks => {
+        Object.keys(userWeeks).forEach(w => allWeeks.add(w));
+    });
+
+    const labels = [...allWeeks].sort();
+
+    const datasets = Object.keys(weekly).map((userId, i) => ({
+        label: userNames[userId],
+        data: labels.map(week => weekly[userId][week] || 0),
         borderColor: LINE_COLORS[i % LINE_COLORS.length],
-        backgroundColor: LINE_COLORS[i % LINE_COLORS.length] + '20',
+        borderWidth: 2,
         tension: 0.3,
-        fill: false,
-        pointRadius: 4
+        pointRadius: 3
     }));
 
     lineCanvas.style.display = 'block';
 
     if (lineChartInstance) lineChartInstance.destroy();
+
     lineChartInstance = new Chart(lineCanvas, {
         type: 'line',
-        data: { labels: weeks, datasets },
+        data: { labels, datasets },
         options: {
             responsive: true,
             plugins: { legend: { position: 'bottom' } },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#f5f5f5' } },
+                y: { beginAtZero: true },
                 x: { grid: { display: false } }
             }
         }
