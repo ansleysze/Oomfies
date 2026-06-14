@@ -9,9 +9,10 @@ let barChartInstance = null;
 
 function getWeekStart(dateStr) {
     const d = new Date(dateStr);
-    const day = d.getDay();
-    const diff = d.getDate() - day;
-    const weekStart = new Date(d.setDate(diff));
+    const day = d.getUTCDay();
+    const diff = d.getUTCDate() - day;
+    const weekStart = new Date(d);
+    weekStart.setUTCDate(diff);
     return weekStart.toISOString().split('T')[0];
 }
 
@@ -21,45 +22,35 @@ async function loadLineChart() {
 
     const { data, error } = await supabaseClient
         .from('fan_history')
-        .select(`
-            user_id,
-            created_at,
-            new_count,
-            users(username)
-        `)
+        .select(`user_id, created_at, change_amount, users (username)`)
         .order('created_at', { ascending: true });
-
-    console.log(data, error);
 
     lineLoading.style.display = 'none';
 
     if (error || !data?.length) return;
 
     const weekly = {};
-    const userNames = {};
+    const userMap = {};
+    const weeks = new Set();
 
     data.forEach(row => {
-        const user = row.user_id;
+        const userId = row.user_id;
         const week = getWeekStart(row.created_at);
 
-        if (!userNames[user]) userNames[user] = row.users?.username || user;
+        weeks.add(week);
+        userMap[userId] = row.users?.username || userId;
 
-        if (!weekly[user]) weekly[user] = {};
-        weekly[user][week] = row.new_count;
+        if (!weekly[userId]) weekly[userId] = {};
+        if (!weekly[userId][week]) weekly[userId][week] = 0;
+        weekly[userId][week] += row.change_amount;
     });
 
-    const allWeeks = new Set();
-    Object.values(weekly).forEach(userWeeks => {
-        Object.keys(userWeeks).forEach(w => allWeeks.add(w));
-    });
-
-    const labels = [...allWeeks].sort();
+    const labels = [...weeks].sort();
 
     const datasets = Object.keys(weekly).map((userId, i) => ({
-        label: userNames[userId],
+        label: userMap[userId] || userId,
         data: labels.map(week => weekly[userId][week] || 0),
         borderColor: LINE_COLORS[i % LINE_COLORS.length],
-        borderWidth: 2,
         tension: 0.3,
         pointRadius: 3
     }));
